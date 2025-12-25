@@ -779,12 +779,26 @@ pub fn render_cst<'a, 'b: 'a>(
     out: &mut impl Write,
 ) -> Result<()> {
     let lossy_source_code = String::from_utf8_lossy(source_code);
-    let total_width = lossy_source_code
+    let widths: Vec<usize> = lossy_source_code
         .lines()
         .enumerate()
-        .map(|(row, col)| (row as f64).log10() as usize + (col.len() as f64).log10() as usize + 1)
-        .max()
-        .unwrap_or(1);
+        .map(|(row, line)| {
+            let width = (row as f64).log10() as usize + (line.len() as f64).log10() as usize + 1;
+
+            println!("row={}, len={}, width={}", row, line.len(), width);
+            width
+        })
+        .collect();
+
+    let total_width = widths.into_iter().max().unwrap_or(1);
+    println!("{:?}", total_width);
+
+    // let total_width = lossy_source_code
+    //     .lines()
+    //     .enumerate()
+    //     .map(|(row, col)| (row as f64).log10() as usize + (col.len() as f64).log10() as usize + 1)
+    //     .max()
+    //     .unwrap_or(1);
     let mut indent_level = 1;
     let mut did_visit_children = false;
     let mut in_error = false;
@@ -938,6 +952,7 @@ fn render_node_range(
         - (range.end_point.row as f64).log10() as usize
         - (range.end_point.column as f64).log10() as usize)
         .max(1);
+    println!("|{} - {}|", remaining_width_start, remaining_width_start);
     paint(
         range_color,
         &format!(
